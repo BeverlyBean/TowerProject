@@ -153,7 +153,7 @@
 #define /*0x17C*/ oOpacity                                      OBJECT_FIELD_S32(0x3D)
 #define /*0x180*/ oDamageOrCoinValue                            OBJECT_FIELD_S32(0x3E)
 #define /*0x184*/ oHealth                                       OBJECT_FIELD_S32(0x3F)
-#define /*0x188*/ oBehParams                                    OBJECT_FIELD_S32(0x40)
+#define /*0x188*/ oBehParams                                    OBJECT_FIELD_U32(0x40)
 #define /*0x18C*/ oPrevAction                                   OBJECT_FIELD_S32(0x41)
 #define /*0x190*/ oInteractionSubtype                           OBJECT_FIELD_U32(0x42)
 #define /*0x194*/ oCollisionDistance                            OBJECT_FIELD_F32(0x43)
@@ -606,7 +606,7 @@
 #define /*0x110*/ oIsFloomba OBJECT_FIELD_S32(0x22)
 
 #ifdef INTRO_FLOOMBAS
-#define /*0x1AC*/ oZoomCounter OBJECT_FIELD_S32(0x49)
+#define /*0x1AC*/ oZoomCounter OBJECT_FIELD_U32(0x49)
 #define /*0x1B0*/ oZoomPosZ    OBJECT_FIELD_F32(0x4A)
 #endif
 #endif
@@ -1335,5 +1335,14 @@ os16112*/
 #define /*0x110*/ os16110                                       OBJECT_FIELD_S16(0x22, 0)
 #define /*0x112*/ os16112                                       OBJECT_FIELD_S16(0x22, 1)
 
+
+
+// Advanced lighting engine
+// These use previously unused object fields outside of the normal range
+// for specific behaviors, so they shouldn't interfere with any custom ones
+#define /*0x148*/ oLightColor                 OBJECT_FIELD_S32(0x30) // 0xRRGGBB00
+#define /*0x1A4*/ oLightQuadraticFalloff      OBJECT_FIELD_S16(0x47, 0)
+#define /*0x1A6*/ oLightLinearFalloff         OBJECT_FIELD_S16(0x47, 1)
+#define /*0x098*/ oLightConstantFalloff       OBJECT_FIELD_S16(0x04, 0)
 
 #endif // OBJECT_FIELDS_H

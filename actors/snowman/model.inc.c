@@ -4,28 +4,12 @@
 UNUSED static const u64 snowman_unused_1 = 1;
 
 // Unreferenced light group
-UNUSED static const Lights1 snowman_lights_unused1 = gdSPDefLights1(
-    0x0d, 0x0c, 0x28,
-    0x35, 0x32, 0xa2, 0x28, 0x28, 0x28
-);
 
 // Unreferenced light group
-UNUSED static const Lights1 snowman_lights_unused2 = gdSPDefLights1(
-    0x3f, 0x00, 0x00,
-    0xff, 0x00, 0x00, 0x28, 0x28, 0x28
-);
 
 // Unreferenced light group
-UNUSED static const Lights1 snowman_lights_unused3 = gdSPDefLights1(
-    0x08, 0x07, 0x04,
-    0x23, 0x1c, 0x12, 0x28, 0x28, 0x28
-);
 
 // Unreferenced light group
-UNUSED static const Lights1 snowman_lights_unused4 = gdSPDefLights1(
-    0x03, 0x03, 0x02,
-    0x0e, 0x0d, 0x0b, 0x28, 0x28, 0x28
-);
 
 // 0x05008C70
 ALIGNED8 static const Texture snowman_seg5_texture_05008C70[] = {
@@ -53,10 +37,6 @@ ALIGNED8 static const Texture snowman_seg5_texture_0500BC70[] = {
 };
 
 // 0x0500C470
-static const Lights1 snowman_seg5_lights_0500C470 = gdSPDefLights1(
-    0x1c, 0x0f, 0x07,
-    0x38, 0x1e, 0x0e, 0x28, 0x28, 0x28
-);
 
 // 0x0500C488
 static const Vtx snowman_seg5_vertex_0500C488[] = {
@@ -68,8 +48,6 @@ static const Vtx snowman_seg5_vertex_0500C488[] = {
 
 // 0x0500C4C8 - 0x0500C500
 const Gfx snowman_seg5_dl_0500C4C8[] = {
-    gsSPLight(&snowman_seg5_lights_0500C470.l, 1),
-    gsSPLight(&snowman_seg5_lights_0500C470.a, 2),
     gsSPVertex(snowman_seg5_vertex_0500C488, 4, 0),
     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
     gsSP1Triangle( 0,  3,  1, 0x0),
@@ -125,8 +103,7 @@ const Gfx snowman_seg5_dl_0500C5E8[] = {
 // 0x0500C620 - 0x0500C698
 const Gfx snowman_seg5_dl_0500C620[] = {
     gsDPPipeSync(),
-    gsDPSetCombineMode(G_CC_DECALRGBA, G_CC_DECALRGBA),
-    gsSPClearGeometryMode(G_LIGHTING),
+    gsDPSetCombineMode(G_CC_MODULATEIA, G_CC_MODULATEIA),
     gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_LOADTILE, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD),
     gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
     gsDPTileSync(),
@@ -167,8 +144,7 @@ const Gfx snowman_seg5_dl_0500C718[] = {
 // 0x0500C760 - 0x0500C7D0
 const Gfx snowman_seg5_dl_0500C760[] = {
     gsDPPipeSync(),
-    gsDPSetCombineMode(G_CC_DECALRGBA, G_CC_DECALRGBA),
-    gsSPClearGeometryMode(G_LIGHTING),
+    gsDPSetCombineMode(G_CC_MODULATEIA, G_CC_MODULATEIA),
     gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_LOADTILE, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD),
     gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
     gsDPTileSync(),
@@ -183,10 +159,6 @@ const Gfx snowman_seg5_dl_0500C760[] = {
 };
 
 // 0x0500C7D0
-static const Lights1 snowman_seg5_lights_0500C7D0 = gdSPDefLights1(
-    0x7f, 0x7f, 0x7f,
-    0xff, 0xff, 0xff, 0x28, 0x28, 0x28
-);
 
 // 0x0500C7E8
 static const Vtx snowman_seg5_vertex_0500C7E8[] = {
@@ -226,8 +198,6 @@ const Gfx snowman_seg5_dl_0500C978[] = {
     gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, snowman_seg5_texture_05008C70),
     gsDPLoadSync(),
     gsDPLoadBlock(G_TX_LOADTILE, 0, 0, 32 * 32 - 1, CALC_DXT(32, G_IM_SIZ_16b_BYTES)),
-    gsSPLight(&snowman_seg5_lights_0500C7D0.l, 1),
-    gsSPLight(&snowman_seg5_lights_0500C7D0.a, 2),
     gsSPVertex(snowman_seg5_vertex_0500C7E8, 16, 0),
     gsSP2Triangles( 0,  1,  2, 0x0,  0,  3,  4, 0x0),
     gsSP2Triangles( 4,  1,  0, 0x0,  5,  4,  3, 0x0),
@@ -251,7 +221,7 @@ const Gfx snowman_seg5_dl_0500C978[] = {
 // 0x0500CAA8 - 0x0500CB08
 const Gfx snowman_seg5_dl_0500CAA8[] = {
     gsDPPipeSync(),
-    gsDPSetCombineMode(G_CC_MODULATERGB, G_CC_MODULATERGB),
+    gsDPSetCombineMode(G_CC_MODULATEI, G_CC_MODULATEI),
     gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_LOADTILE, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD),
     gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
     gsDPTileSync(),
@@ -303,8 +273,7 @@ const Gfx snowman_seg5_dl_0500CBC0[] = {
 // 0x0500CBF8 - 0x0500CC70
 const Gfx snowman_seg5_dl_0500CBF8[] = {
     gsDPPipeSync(),
-    gsDPSetCombineMode(G_CC_DECALRGBA, G_CC_DECALRGBA),
-    gsSPClearGeometryMode(G_LIGHTING),
+    gsDPSetCombineMode(G_CC_MODULATEIA, G_CC_MODULATEIA),
     gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_LOADTILE, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD),
     gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
     gsDPTileSync(),
@@ -340,8 +309,7 @@ const Gfx snowman_seg5_dl_0500CCB0[] = {
 // 0x0500CCE8 - 0x0500CD58
 const Gfx snowman_seg5_dl_0500CCE8[] = {
     gsDPPipeSync(),
-    gsDPSetCombineMode(G_CC_DECALRGBA, G_CC_DECALRGBA),
-    gsSPClearGeometryMode(G_LIGHTING),
+    gsDPSetCombineMode(G_CC_MODULATEIA, G_CC_MODULATEIA),
     gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_LOADTILE, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD),
     gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
     gsDPTileSync(),

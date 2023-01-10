@@ -9,23 +9,42 @@
 #include "surface_collision.h"
 #include "surface_load.h"
 #include "game/puppyprint.h"
+#include "math_util.h"
 
 /**************************************************
  *                      WALLS                     *
  **************************************************/
 
-#define CALC_OFFSET(vert, next_step) {          \
-    if (FLT_IS_NONZERO((vert)[1])) {            \
-        v = (v2[1] / (vert)[1]);                \
-        if ((v < 0.0f) || (v > 1.0f)) next_step;\
-        d00 = (((vert)[0] * v) - v2[0]);        \
-        d01 = (((vert)[2] * v) - v2[2]);        \
-        invDenom = sqrtf(sqr(d00) + sqr(d01));  \
-        offset   = (invDenom - margin_radius);  \
-        if (offset > 0.0f) next_step;           \
-        goto check_collision;                   \
-    }                                           \
-    next_step;                                  \
+static s32 check_wall_vw(f32 d00, f32 d01, f32 d11, f32 d20, f32 d21, f32 invDenom) {
+    f32 v = ((d11 * d20) - (d01 * d21)) * invDenom;
+    if (v < 0.0f || v > 1.0f) {
+        return TRUE;
+    }
+
+    f32 w = ((d00 * d21) - (d01 * d20)) * invDenom;
+    if (w < 0.0f || w > 1.0f || v + w > 1.0f) {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+s32 check_wall_edge(Vec3f vert, Vec3f v2, f32 *d00, f32 *d01, f32 *invDenom, f32 *offset, f32 margin_radius) {
+    if (FLT_IS_NONZERO(vert[1])) {
+        f32 v = (v2[1] / vert[1]);
+        if (v < 0.0f || v > 1.0f) {
+            return TRUE;
+        }
+
+        *d00 = ((vert[0] * v) - v2[0]);
+        *d01 = ((vert[2] * v) - v2[2]);
+        *invDenom = sqrtf(sqr(*d00) + sqr(*d01));
+        *offset = (*invDenom - margin_radius);
+
+        return (*offset > 0.0f);
+    }
+
+    return TRUE;
 }
 
 /**
@@ -34,16 +53,15 @@
  */
 static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode, struct WallCollisionData *data) {
     const f32 corner_threshold = -0.9f;
-    register struct Surface *surf;
-    register f32 offset;
-    register f32 radius = data->radius;
+    struct Surface *surf;
+    f32 offset;
+    f32 radius = data->radius;
 
     Vec3f pos = { data->x, data->y + data->offsetY, data->z };
     Vec3f v0, v1, v2;
-    register f32 d00, d01, d11, d20, d21;
-    register f32 invDenom;
-    register f32 v, w;
-    register TerrainData type = SURFACE_DEFAULT;
+    f32 d00, d01, d11, d20, d21;
+    f32 invDenom;
+    TerrainData type = SURFACE_DEFAULT;
     s32 numCols = 0;
 
     // Max collision radius = 200
@@ -79,11 +97,14 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode, struc
         }
 
         // Dot of normal and pos, + origin offset
-        offset = (surf->normal.x * pos[0]) + (surf->normal.y * pos[1]) + (surf->normal.z * pos[2]) + surf->originOffset;
+        offset = (surf->normal.x * pos[0])
+               + (surf->normal.y * pos[1])
+               + (surf->normal.z * pos[2])
+               + surf->originOffset;
 
         // Exclude surfaces outside of the radius.
         if (offset < -radius || offset > radius) continue;
-    
+
         vec3_diff(v0, surf->vertex2, surf->vertex1);
         vec3_diff(v1, surf->vertex3, surf->vertex1);
         vec3_diff(v2, pos,           surf->vertex1);
@@ -96,38 +117,48 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode, struc
         d21 = vec3_dot(v2, v1);
 
         invDenom = (d00 * d11) - (d01 * d01);
-        if (FLT_IS_NONZERO(invDenom)) invDenom = 1.0f / invDenom;
+        if (FLT_IS_NONZERO(invDenom)) {
+            invDenom = 1.0f / invDenom;
+        }
 
-        v = ((d11 * d20) - (d01 * d21)) * invDenom;
-        if (v < 0.0f || v > 1.0f) goto edge_1_2;
+        if (check_wall_vw(d00, d01, d11, d20, d21, invDenom)) {
+            if (offset < 0) {
+                continue;
+            }
 
-        w = ((d00 * d21) - (d01 * d20)) * invDenom;
-        if (w < 0.0f || w > 1.0f || v + w > 1.0f) goto edge_1_2;
+            // Edge 1-2
+            if (check_wall_edge(v0, v2, &d00, &d01, &invDenom, &offset, margin_radius)) {
+                // Edge 1-3
+                if (check_wall_edge(v1, v2, &d00, &d01, &invDenom, &offset, margin_radius)) {
+                    vec3_diff(v1, surf->vertex3, surf->vertex2);
+                    vec3_diff(v2, pos, surf->vertex2);
+                    // Edge 2-3
+                    if (check_wall_edge(v1, v2, &d00, &d01, &invDenom, &offset, margin_radius)) {
+                        continue;
+                    }
+                }
+            }
 
-        pos[0] += surf->normal.x * (radius - offset);
-        pos[2] += surf->normal.z * (radius - offset);
-        goto hasCollision;
+            // Check collision
+            if (FLT_IS_NONZERO(invDenom)) {
+                invDenom = (offset / invDenom);
+            }
 
-    edge_1_2:
-        if (offset < 0) continue;
-        CALC_OFFSET(v0, goto edge_1_3);
+            // Update pos
+            pos[0] += (d00 *= invDenom);
+            pos[2] += (d01 *= invDenom);
+            margin_radius += 0.01f;
 
-    edge_1_3:
-        CALC_OFFSET(v1, goto edge_2_3);
+            if ((d00 * surf->normal.x) + (d01 * surf->normal.z) < (corner_threshold * offset)) {
+                continue;
+            }
+        } else {
+            // Update pos
+            pos[0] += surf->normal.x * (radius - offset);
+            pos[2] += surf->normal.z * (radius - offset);
+        }
 
-    edge_2_3:
-        vec3_diff(v1, surf->vertex3, surf->vertex2);
-        vec3_diff(v2, pos, surf->vertex2);
-        CALC_OFFSET(v1, continue);
-
-    check_collision:
-        if (FLT_IS_NONZERO(invDenom)) invDenom = (offset / invDenom);
-        pos[0] += (d00 *= invDenom);
-        pos[2] += (d01 *= invDenom);
-        margin_radius += 0.01f;
-        if ((d00 * surf->normal.x) + (d01 * surf->normal.z) < (corner_threshold * offset)) continue;
-
-    hasCollision:
+        // Has collision
         if (data->numWalls < MAX_REFERENCED_WALLS) {
             data->walls[data->numWalls++] = surf;
         }
@@ -137,11 +168,11 @@ static s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode, struc
             break;
         }
     }
+
     data->x = pos[0];
     data->z = pos[2];
     return numCols;
 }
-#undef CALC_OFFSET
 
 /**
  * Formats the position and wall search for find_wall_collisions.
@@ -866,3 +897,108 @@ s32 unused_resolve_floor_or_ceil_collisions(s32 checkCeil, f32 *px, f32 *py, f32
 
     return 0;
 }
+
+#define EPSILON 0.0001f
+#define VEC3_DOT(a,b) ((a)[0] * (b)[0] + (a)[1] * (b)[1] + (a)[2] * (b)[2])
+#define VEC3_COPY(out,a) \
+    {(out)[0] = (a)[0];           (out)[1] = (a)[1];           (out)[2] = (a)[2];}
+#define VEC3_SCALE(out,a,scale) \
+    {(out)[0] = (a)[0] * (scale); (out)[1] = (a)[1] * (scale); (out)[2] = (a)[2] * (scale);}
+#define VEC3_ADD(out,a,b)  \
+    {(out)[0] = (a)[0] + (b)[0];  (out)[1] = (a)[1] + (b)[1];  (out)[2] = (a)[2] + (b)[2];}
+#define VEC3_DIFF(out,a,b) \
+    {(out)[0] = (a)[0] - (b)[0];  (out)[1] = (a)[1] - (b)[1];  (out)[2] = (a)[2] - (b)[2];}
+#define ABSI(x) ((x) > 0 ? (x) : -(x))
+#define NORMAL_SCALE 1024
+
+f32 ray_surf_intersect(Vec3f rayStart, Vec3f rayDir, f32 rayDist, Vec3f intersectionOut, struct Surface* surf)
+{
+    f32 denom;
+    f32 distOnRay;
+    s16 u[3], v[3]; // Edge vectors
+    s16 w[3]; // Intersection point - vertex1
+    f32 uu, uv, vv, wu, wv; // Dot products
+    f32 s, t; // Barycentric coordinates
+    // Intersect the ray with the plane that the surface lies in
+    // a = -(originOffset + normal dot rayStart) / (normal dot rayDir)
+
+    denom = VEC3_DOT(&surf->normal.x, rayDir);
+    // Prevent division by zero and throw out collision with backfaces (negative denominator)
+    if (denom != denom && denom > -EPSILON)
+    {
+        return -1;
+    }
+    distOnRay = -((surf->originOffset) + VEC3_DOT(&surf->normal.x, rayStart)) / denom;
+    if (distOnRay > rayDist)
+    {
+        return -2;
+    }
+    if (distOnRay < 0)
+    {
+        return -3;
+    }
+
+    // Calculate the intersection point from the calculated distance
+    VEC3_SCALE(intersectionOut, rayDir, distOnRay);
+    VEC3_ADD(intersectionOut, rayStart, intersectionOut);
+
+    // Calculate the barycentric coordinates of the triangle vertices and intersection point
+    VEC3_DIFF(u, surf->vertex2, surf->vertex1); // These 2 could be precalculated :(
+    VEC3_DIFF(v, surf->vertex3, surf->vertex1);
+
+    VEC3_DIFF(w, intersectionOut, surf->vertex1);
+
+    // Calculate the various dot products
+    uu = VEC3_DOT(u, u); // These 3 could also be precalculated :(
+    uv = VEC3_DOT(u, v);
+    vv = VEC3_DOT(v, v);
+    
+    wu = VEC3_DOT(w, u);
+    wv = VEC3_DOT(w, v);
+
+    // Calculate and check the barycentric coordinates
+    denom = (uv * uv - uu * vv); // Doesn't need to be checked for 0 (assuming non-degenerate triangles)
+    s = (uv * wv - vv * wu) / denom;
+    if (s < 0 || s > 1)
+    {
+        return -4;
+    }
+    t = (uv * wu - uu * wv) / denom;
+    if (t < 0 || (s + t) > 1)
+    {
+        return -5;
+    }
+    return distOnRay;
+}
+
+f32 raycast(Vec3f rayStart, Vec3f rayDir, f32 rayDist, Vec3f intersection, struct Surface** surfHit)
+{
+    Vec3f dirNorm;
+    f32 intDist = -1.0f;
+    s32 cellX, cellZ;
+    struct SurfaceNode *node;
+    vec3f_copy(dirNorm, rayDir);
+    vec3f_normalize(dirNorm);
+    for (cellX = 0; cellX < 16; cellX++)
+    {
+        for (cellZ = 0; cellZ < 16; cellZ++)
+        {
+            node = gStaticSurfacePartition[cellZ][cellX][SPATIAL_PARTITION_WALLS].next;
+            while (node)
+            {
+                Vec3f curHit;
+                f32 curDist;
+                curDist = ray_surf_intersect(rayStart, dirNorm, rayDist, curHit, node->surface);
+                if (curDist >= 0 && (intDist < 0 || curDist < intDist))
+                {
+                    intDist = curDist;
+                    vec3f_copy(intersection, curHit);
+                    *surfHit = node->surface;
+                }
+                node = node->next;
+            }
+        }
+    }
+    return intDist;
+}
+

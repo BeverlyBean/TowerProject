@@ -58,7 +58,8 @@ enum GeoLayoutCommands {
     /*0x1E*/ GEO_CMD_NOP_1E,
     /*0x1F*/ GEO_CMD_NOP_1F,
     /*0x20*/ GEO_CMD_NODE_CULLING_RADIUS,
-    /*0x21*/ GEO_CMD_BONE,
+    // Advanced lighting engine
+    /*0x21*/ GEO_CMD_SCENE_LIGHT,
 };
 
 // geo layout macros
@@ -469,19 +470,20 @@ enum GeoLayoutCommands {
     CMD_BBH(GEO_CMD_NODE_CULLING_RADIUS, 0x00, cullingRadius)
 
 /**
- * 0x21: Create a scene graph node that is rotated by the object's animation + an initial rotation.
- *       u8 drawingLayer
- *       s16 xTranslation
- *       s16 yTranslation
- *       s16 zTranslation
- *       s16 xRotation
- *       s16 yRotation
- *       s16 zRotation
- *       u32 displayList: dislay list segmented address
+ * Advanced lighting engine
+ * GEO_CMD_SCENE_LIGHT: Create a scene light node. Can be a regular light, point light, or ambient light.
+ *   0x01: u8 lightType (0 is ambient, 1 is directional, 2 is point, 3 is occluded point)
+ *   0x02: u8 red
+ *   0x03: u8 green
+ *   0x04: u8 blue
+ *   0x05: u8 x direction (directional light) or quadratic falloff (point light)
+ *   0x06: u8 y direction (directional light) or linear falloff (point light)
+ *   0x07: u8 z direction (directional light) or constant falloff (point light)
  */
-#define GEO_BONE(layer, tx, ty, tz, rx, ry, rz, displayList) \
-    CMD_BBH(GEO_CMD_BONE, layer, 0x0000), \
-    CMD_HHHHHH(tx, ty, tz, rx, ry, rz), \
-    CMD_PTR(displayList)
+#include "point_lights.h"
+
+#define GEO_SCENE_LIGHT(lightType, red, green, blue, a, b, c) \
+    CMD_BBBB(GEO_CMD_SCENE_LIGHT, lightType, red, green), \
+    CMD_BBBB(blue, a, b, c)
 
 #endif // GEO_COMMANDS_H

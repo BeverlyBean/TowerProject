@@ -17,7 +17,7 @@
 /**
  * Spawns floombas on the title screen.
  */
-#define INTRO_FLOOMBAS
+//#define INTRO_FLOOMBAS
 
 /**
  * Enables widescreen (16:9) support.
@@ -42,7 +42,7 @@
  * Enables Puppyprint, a display library for text and large images.
  * Automatically enabled when PUPPYPRINT_DEBUG is enabled.
  */
-// #define PUPPYPRINT
+#define PUPPYPRINT
 
 /**
  * Disables AA (Improves console performance but causes visible seams between unconnected geometry).
@@ -84,7 +84,7 @@
 /**
  * Makes certain objects (mainly trees) transparent when the camera gets close.
  */
-// #define OBJ_OPACITY_BY_CAM_DIST
+#define OBJ_OPACITY_BY_CAM_DIST
 
 /**
  * Fixes the game reading the ia8 burn smoke texture as an rgba16.
@@ -100,7 +100,7 @@
  * Uses the star object's model in the star dance cutscene.
  * This has a side effect of making the star dance star also transparent when Mario collects a transparent star.
  */
-// #define STAR_DANCE_USES_STARS_MODEL
+#define STAR_DANCE_USES_STARS_MODEL
 
 /**
  * Lightweight directional lighting engine by Fazana. Intended for giving proximity and positional pointlights to small objects.
@@ -113,7 +113,7 @@
  * It is sideways in vanilla, and since vanilla's environment map textures are sideways too, those will appear as sideways in-game if this is enabled.
  * Make sure your custom environment map textures are the correct orientation.
  */
-// #define FIX_REFLECT_MTX
+#define FIX_REFLECT_MTX
 
 /**
  * This improves performance a bit, and does not seem to break anything.
